@@ -18,7 +18,7 @@ public:
         if (ch == '\n')
         {
             infile.seekg(-2, std::ios::cur);
-            infile.seekg(-1, std::ios::cur);    
+            infile.seekg(-1, std::ios::cur);
             infile.get(ch);
             while(ch != '\n')
             {
@@ -27,14 +27,15 @@ public:
             }
             infile.getline(ID,3,'|');
         }
-
+        
         if(strlen(ID)==0)
             return 0;
         
         return atoi(ID);
     }
     
-    void EnterCustomer(){
+    void EnterCustomer()
+    {
         cout << "Enter Your ID: ";
         cin >> ID;
         cout << "Enter Your name: ";
@@ -44,9 +45,10 @@ public:
         
     }
     
-    void PrintCustomer(){
-        cout << ID << endl;
-        cout << name << endl;
+    void PrintCustomer()
+    {
+        cout << ID << "  ";
+        cout << name << "  ";
         cout << balance << endl;
     }
     
@@ -54,12 +56,11 @@ public:
     {
         f<<ID<<'|'<<name<<'|'<<balance<<'\n';
     }
-
+    
     bool SearchCustomer(fstream &f, int id)
     {
-        while(!f.eof())
+        while(f.getline(ID,3,'|'))
         {
-            f.getline(ID,3,'|');
             f.getline(name,20,'|');
             f.getline(balance,4);
             if(atoi(ID) == id)
@@ -70,107 +71,64 @@ public:
         }
         return false;
     }
-
-
+    
+    
     void ReadCustomer(fstream &f)
     {
-        while(!f.eof())
+        while(f.getline(ID,3,'|'))
         {
-            f.getline(ID,3,'|');
             f.getline(name,20,'|');
             f.getline(balance,4);
             PrintCustomer();
         }
     }
-
-
-    void Update_Recoed()
+    void Delete(fstream &f, int id)
     {
-        fstream f;
         fstream f2;
-         int ID_Search;
-        f.open("test1",ios::in);
         f2.open("temp.txt",ios::out);
-        cout << "Enter Your ID" << endl;
-        cin >> ID_Search;
-        while(!f.eof())
+        
+        while(f.getline(ID,3,'|'))
         {
-            f.getline(ID,3,'|');
-
-            if(atoi(ID) == ID_Search)
+            f.getline(name,20,'|');
+            f.getline(balance,4);
+            if(atoi(ID) != id)
+            {
+                WriteCustomer(f2);
+            }
+        }
+        f.close();
+        f2.close();
+        
+        remove("test1.txt");
+        rename("temp.txt","test1.txt");
+    }
+    
+    void Update(fstream &f, int id)
+    {
+        fstream f2;
+        f2.open("temp.txt",ios::out);
+        
+        while(f.getline(ID,3,'|'))
+        {
+            f.getline(name,20,'|');
+            f.getline(balance,4);
+            if(atoi(ID) == id)
             {
                 cout << "Enter New Date Of Record : " << endl;
                 EnterCustomer();
                 WriteCustomer(f2);
+            }
+            else{
+                 WriteCustomer(f2);
+            }
+        }
+        f.close();
+        f2.close();
+        
+        remove("test1.txt");
+        rename("temp.txt","test1.txt");
+    }
 
-            }
-            else
-            {
-                f.getline(name,20,'|');
-                f.getline(balance,4);
-                WriteCustomer(f2);
-            }
-        }
-        
-        f2.close();
-        f.close();
-        
-        f.open("test1",ios::out);
-        f2.open("temp.txt",ios::in);
-        while(!f2.eof())
-        {
-            f2.getline(ID,3,'|');
-            f2.getline(name,20,'|');
-            f.getline(balance,4);
-            WriteCustomer(f);
-        }
-        f2.close();
-        f.close();
-        remove("temp.txt");
-    }
-    void Delete_Record()
-    {
-        int ID_Search;
-        short nSize;
-        fstream f1;
-        fstream f2;
-        f1.open("test1", ios::in);
-        f2.open("temp.txt", ios::out);
-        cout << "Enter Your ID" << endl;
-        cin >> ID_Search;
-        while (f1.read((char*)&nSize, sizeof(short)))
-        {
-            f1.getline(ID,3,'|');
-            
-            if(atoi(ID) == ID_Search)
-            {
-                continue;
-            }
-            else
-            {
-                f1.getline(name,20,'|');
-                f1.getline(balance,4);
-                WriteCustomer(f2);
-            }
-        }
-        f1.close();
-        f2.close();
-        
-        
-        f1.open("test1", ios::out);
-        f2.open("temp.txt", ios::in);
-        while (f2.read((char*)&nSize, sizeof(short)))
-        {
-            f2.getline(ID,3,'|');
-            f2.getline(name,20,'|');
-            f2.getline(balance,4);
-            WriteCustomer(f1);
-            
-        }
-        f1.close();
-        f2.close();
-        remove("temp.txt");
-    }
 };
 int main()
 {
@@ -178,7 +136,7 @@ int main()
     Customer cs;
     cout<<cs.getLastID()<<endl;
     int id;
-    fstream f("test1",  ios::in|ios::out|ios::binary);
+    fstream f;
     char z;
     int choice;
     do{
@@ -189,23 +147,34 @@ int main()
         cin >> choice;
         switch (choice){
             case 1:
+                f.open("test1.txt",  ios::out|ios::app);
                 cs.EnterCustomer();
                 cs.WriteCustomer(f);
+                f.close();
                 break;
             case 2:
+                f.open("test1.txt",  ios::in);
                 cout << "Enter Your Id" << endl;
                 cin >> id;
                 cs.SearchCustomer(f, id);
-                
+                f.close();
                 break;
             case 3:
-                cs.Update_Recoed();
+                f.open("test1.txt",  ios::in);
+                cout << "Enter Your Id" << endl;
+                cin >> id;
+                cs.Update(f, id);
                 break;
             case 4:
-                cs.Delete_Record();
+                f.open("test1.txt",  ios::in);
+                cout << "Enter Your Id" << endl;
+                cin >> id;
+                cs.Delete(f, id);
                 break;
             case 5:
+                f.open("test1.txt",  ios::in);
                 cs.ReadCustomer(f);
+                f.close();
                 break;
             default:
                 cout << "choose right number" << endl;
